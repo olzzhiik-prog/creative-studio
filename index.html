@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Креативная студия</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0b0c; --panel:#141417; --panel2:#1b1b1f; --line:#2a2a30;
+    --ink:#f3f0e7; --dim:#97938a; --accent:#d8ff3e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:radial-gradient(110% 80% at 100% 0%, #17170f 0%, transparent 55%), var(--bg);
+    color:var(--ink); font-family:'Instrument Sans',system-ui,sans-serif; min-height:100vh;}
+  .wrap{max-width:1080px; margin:0 auto; padding:42px 22px 70px;}
+  h1{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:clamp(34px,6vw,58px);
+    line-height:.95; letter-spacing:-.02em; margin:0 0 12px;}
+  .hl{color:var(--accent);}
+  .sub{color:var(--dim); max-width:560px; font-size:15.5px; line-height:1.5; margin:0 0 28px;}
+
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:24px;
+    box-shadow:0 24px 60px -30px #000;}
+  .lbl{display:block; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--dim); font-weight:600; margin-bottom:8px;}
+  textarea,input[type=text]{width:100%; background:var(--panel2); border:1px solid var(--line);
+    border-radius:12px; color:var(--ink); padding:13px 14px; font:inherit; font-size:15px; resize:vertical; transition:.18s;}
+  textarea::placeholder,input::placeholder{color:#5f5c55;}
+  textarea:focus,input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px #d8ff3e22;}
+  .field{margin-top:16px;}
+  .lbl-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
+  .lbl-row .lbl{margin-bottom:0;}
+  .mini{background:#d8ff3e1a; border:1px solid #d8ff3e55; color:var(--accent); padding:6px 11px;
+    border-radius:8px; font:inherit; font-weight:600; font-size:12.5px; cursor:pointer; transition:.16s;}
+  .mini:hover:not(:disabled){background:#d8ff3e2e;}
+  .mini:disabled{opacity:.4; cursor:not-allowed;}
+  .usp-opts{display:flex; flex-direction:column; gap:7px; margin-top:10px;}
+  .usp-hint{font-size:11px; color:var(--dim);}
+  .usp-chip{text-align:left; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+    padding:10px 12px; border-radius:10px; font:inherit; font-size:13.5px; line-height:1.4; cursor:pointer; transition:.16s;}
+  .usp-chip:hover{border-color:var(--accent); color:var(--accent);}
+  .seg{display:flex; gap:8px; flex-wrap:wrap;}
+  .seg-btn{flex:1; min-width:120px; background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+    padding:11px 10px; border-radius:11px; font:inherit; font-weight:600; font-size:14px; cursor:pointer; transition:.16s;}
+  .seg-btn:hover{color:var(--ink); border-color:#3a3a42;}
+  .seg-btn.on{background:var(--ink); color:#0b0b0c; border-color:var(--ink);}
+  .logo-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .logo-btn{display:inline-flex; align-items:center; background:var(--panel2); border:1px dashed #3a3a42;
+    color:var(--ink); padding:11px 16px; border-radius:11px; font-weight:600; font-size:14px; cursor:pointer; transition:.16s;}
+  .logo-btn:hover{border-color:var(--accent); color:var(--accent);}
+  .logo-prev{display:flex; align-items:center; gap:6px;}
+  .logo-prev img{height:38px; width:38px; object-fit:contain; border-radius:8px; background:#fff; padding:3px; border:1px solid var(--line);}
+  .logo-rm{background:transparent; border:1px solid var(--line); color:var(--dim); width:28px; height:28px;
+    border-radius:7px; cursor:pointer; font-size:12px; line-height:1;}
+  .go{margin-top:22px; width:100%; background:var(--accent); color:#0b0b0c; border:none; padding:16px;
+    border-radius:13px; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:17px; cursor:pointer; transition:.16s;}
+  .go:hover:not(:disabled){transform:translateY(-1px); box-shadow:0 14px 30px -12px #d8ff3e88;}
+  .go:disabled{opacity:.45; cursor:not-allowed;}
+  .status{margin-top:14px; font-size:14px; line-height:1.45; color:var(--dim);}
+  .status.err{color:#ff8b6b;}
+
+  .grid{display:grid; gap:18px; margin-top:30px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));}
+  .card{border:1px solid var(--line); border-radius:18px; overflow:hidden; background:var(--panel);}
+  .previews{display:flex; gap:14px; padding:16px; flex-wrap:wrap; justify-content:center;
+    background:radial-gradient(120% 100% at 50% 0%, #ffffff08, transparent 70%);}
+  .pv{position:relative;}
+  .pv canvas{display:block; border-radius:10px; box-shadow:0 10px 24px -14px #000;}
+  .pv .cv916{width:150px; height:auto;}
+  .pv .cv11{width:224px; height:auto;}
+  .pv-tag{position:absolute; top:8px; right:8px; z-index:3; font-size:10px; font-weight:700;
+    background:rgba(0,0,0,.55); color:#fff; padding:2px 7px; border-radius:6px;}
+  /* направляющие безопасных зон (только на превью, в скачанный PNG не попадают) */
+  .guide{position:absolute; inset:0; z-index:2; pointer-events:none;}
+  .guide .g{position:absolute; background:repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 5px, rgba(255,255,255,.13) 5px 10px);}
+  .g-top{top:0; left:0; right:0; height:12%; border-bottom:1px dashed rgba(255,255,255,.3);}
+  .g-bot{bottom:0; left:0; right:0; height:20%; border-top:1px dashed rgba(255,255,255,.3);}
+  .g-right{top:12%; bottom:20%; right:0; width:9%;}
+
+  .body{padding:18px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:12px;}
+  .angle{align-self:flex-start; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent);
+    border:1px solid #d8ff3e44; padding:4px 9px; border-radius:6px; font-weight:600;}
+  .ptext{margin:0; font-size:15px; line-height:1.5; color:#dedbd2;}
+  .btns{display:flex; gap:8px; flex-wrap:wrap;}
+  .btn{flex:1; min-width:120px; background:transparent; border:1px solid var(--line); color:var(--ink);
+    padding:11px 8px; border-radius:10px; font:inherit; font-weight:600; font-size:13px; cursor:pointer; transition:.16s;}
+  .btn:hover{border-color:var(--accent); color:var(--accent);}
+  .btn.solid{background:var(--accent); color:#0b0b0c; border-color:var(--accent);}
+  .foot{margin-top:34px; text-align:center; color:#605d56; font-size:13px; line-height:1.5;}
+  .legend{display:flex; align-items:center; gap:7px; padding:0 16px 14px; font-size:11px; color:#6f6c64;}
+  .sw{flex:none; width:16px; height:16px; border-radius:4px; border:1px dashed rgba(255,255,255,.35);
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 4px, rgba(255,255,255,.3) 4px 8px);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Креативная <span class="hl">студия</span></h1>
+      <p class="sub">Опиши продукт — получи готовые рекламные креативы под Instagram и TikTok
+        в форматах 9:16 и 1:1, с учётом безопасных зон площадок. Скачал и запустил.</p>
+    </header>
+
+    <section class="panel">
+      <label class="lbl">Что рекламируем?</label>
+      <textarea id="product" rows="3" placeholder="Напр.: онлайн-курс английского для IT-специалистов, разговорная практика с носителями, первый урок бесплатно"></textarea>
+
+      <div class="field">
+        <label class="lbl">Аудитория (необязательно)</label>
+        <input type="text" id="audience" placeholder="Напр.: разработчики 25–40 лет, готовятся к работе за рубежом" />
+      </div>
+
+      <div class="field">
+        <div class="lbl-row">
+          <label class="lbl">УТП — чем вы лучше (необязательно)</label>
+          <button class="mini" id="uspBtn">✨ Сгенерить УТП</button>
+        </div>
+        <input type="text" id="usp" placeholder="Напр.: первый результат за 2 недели, иначе вернём деньги" />
+        <div class="usp-opts" id="uspOpts" style="display:none"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Площадка</label>
+        <div class="seg" id="seg">
+          <button class="seg-btn on" data-p="Instagram">Instagram</button>
+          <button class="seg-btn" data-p="TikTok">TikTok</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Логотип (необязательно)</label>
+        <div class="logo-row">
+          <label class="logo-btn"><span id="logoLbl">Загрузить логотип</span>
+            <input type="file" id="logo" accept="image/*" hidden /></label>
+          <div class="logo-prev" id="logoPrev" style="display:none">
+            <img id="logoImg" alt="logo" /><button class="logo-rm" id="logoRm">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Фото товара (если рекламируете товар)</label>
+        <div class="logo-row">
+          <label class="logo-btn"><span id="prodLbl">Загрузить фото товара</span>
+            <input type="file" id="prod" accept="image/*" hidden /></label>
+          <div class="logo-prev" id="prodPrev" style="display:none">
+            <img id="prodImg" alt="product" /><button class="logo-rm" id="prodRm">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="go" id="goBtn">Сгенерировать креативы →</button>
+      <div class="status" id="status"></div>
+    </section>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+<script>
+// ---------- состояние ----------
+let platform = "Instagram";
+let logoData = null, prodData = null;
+
+const $ = (id) => document.getElementById(id);
+
+// безопасные зоны (доли холста). 9:16 — строже из-за UI Instagram/TikTok.
+const SAFE = {
+  "9:16": { W:1080, H:1920, top:.12, bottom:.20, left:.06, right:.09 },
+  "1:1":  { W:1080, H:1080, top:.07, bottom:.07, left:.07, right:.07 },
+};
+
+// ---------- загрузка файлов ----------
+function fileToData(file, cb){ const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(file); }
+$("logo").addEventListener("change", e=>{ const f=e.target.files[0]; if(!f)return;
+  fileToData(f, d=>{ logoData=d; $("logoImg").src=d; $("logoPrev").style.display="flex"; $("logoLbl").textContent="Сменить логотип"; }); });
+$("logoRm").addEventListener("click", ()=>{ logoData=null; $("logoPrev").style.display="none"; $("logoLbl").textContent="Загрузить логотип"; $("logo").value=""; });
+$("prod").addEventListener("change", e=>{ const f=e.target.files[0]; if(!f)return;
+  fileToData(f, d=>{ prodData=d; $("prodImg").src=d; $("prodPrev").style.display="flex"; $("prodLbl").textContent="Сменить фото"; }); });
+$("prodRm").addEventListener("click", ()=>{ prodData=null; $("prodPrev").style.display="none"; $("prodLbl").textContent="Загрузить фото товара"; $("prod").value=""; });
+
+// ---------- площадка ----------
+$("seg").addEventListener("click", e=>{ const b=e.target.closest(".seg-btn"); if(!b)return;
+  platform=b.dataset.p; [...$("seg").children].forEach(x=>x.classList.toggle("on", x===b)); });
+
+// ---------- статус ----------
+function status(msg, err){ const s=$("status"); s.textContent=msg||""; s.className="status"+(err?" err":""); }
+
+// ---------- API ----------
+async function api(payload){
+  const r = await fetch("/api/generate", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+  const d = await r.json();
+  if(!r.ok) throw new Error(d.error || ("Ошибка "+r.status));
+  return d;
+}
+
+// ---------- УТП ----------
+$("uspBtn").addEventListener("click", async ()=>{
+  const product=$("product").value.trim();
+  if(!product){ status("Сначала опишите продукт.", true); return; }
+  $("uspBtn").disabled=true; $("uspBtn").textContent="Генерирую…";
+  try{
+    const { options=[] } = await api({ mode:"usp", product });
+    const box=$("uspOpts");
+    box.innerHTML = '<span class="usp-hint">Нажмите, чтобы выбрать:</span>';
+    options.forEach(u=>{ const b=document.createElement("button"); b.className="usp-chip"; b.textContent=u;
+      b.onclick=()=>{ $("usp").value=u; }; box.appendChild(b); });
+    box.style.display = options.length ? "flex" : "none";
+  }catch(e){ status("Не удалось сгенерировать УТП: "+e.message, true); }
+  finally{ $("uspBtn").disabled=false; $("uspBtn").textContent="✨ Сгенерить УТП"; }
+});
+
+// ---------- генерация креативов ----------
+$("goBtn").addEventListener("click", async ()=>{
+  const product=$("product").value.trim();
+  if(!product){ status("Опишите, что рекламируем.", true); return; }
+  $("goBtn").disabled=true; $("goBtn").textContent="Генерирую креативы…";
+  status("ИИ пишет тексты и рисует фон, это занимает 10–30 секунд…");
+  $("grid").innerHTML="";
+  try{
+    await fontsReady();
+    const { concepts=[] } = await api({ mode:"creatives", product, usp:$("usp").value.trim(), audience:$("audience").value.trim(), platform });
+    if(!concepts.length) throw new Error("пустой ответ модели");
+    const imgs = await preloadImages(concepts);
+    concepts.forEach((c,i)=> renderCard(c, imgs[i]));
+    status("");
+  }catch(e){ status("Не получилось: "+e.message+". Попробуй ещё раз.", true); }
+  finally{ $("goBtn").disabled=false; $("goBtn").textContent="Сгенерировать креативы →"; }
+});
+
+// ---------- шрифты для canvas ----------
+async function fontsReady(){
+  try{ await Promise.all([document.fonts.load("800 100px Montserrat"), document.fonts.load("700 100px Montserrat")]); await document.fonts.ready; }catch(e){}
+}
+
+// ---------- загрузка картинок ----------
+function loadImg(src){ return new Promise((res,rej)=>{ if(!src){res(null);return;} const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; }); }
+async function preloadImages(concepts){
+  const logo = await loadImg(logoData);
+  const prod = await loadImg(prodData);
+  const bgs = await Promise.all(concepts.map(c=>loadImg(c.bg)));
+  return concepts.map((c,i)=>({ bg:bgs[i], logo, prod }));
+}
+
+// ---------- утилиты canvas ----------
+function rrect(ctx,x,y,w,h,r){ if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);} else {ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();} }
+function shade(hex,amt){ try{let h=hex.replace("#","");if(h.length===3)h=h.split("").map(x=>x+x).join("");const n=parseInt(h,16);let r=(n>>16)+amt,g=((n>>8)&255)+amt,b=(n&255)+amt;r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));return"#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}catch(e){return hex;} }
+function contrast(hex){ try{let h=hex.replace("#","");if(h.length===3)h=h.split("").map(x=>x+x).join("");const n=parseInt(h,16);const lum=(0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))/255;return lum>0.6?"#0b0b0c":"#ffffff";}catch(e){return"#0b0b0c";} }
+function coverDraw(ctx,img,dx,dy,dw,dh){ const ir=img.width/img.height, dr=dw/dh; let sw,sh,sx,sy;
+  if(ir>dr){ sh=img.height; sw=sh*dr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/dr; sx=0; sy=(img.height-sh)/2; }
+  ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh); }
+function wrap(ctx,text,maxW){ const words=String(text).split(/\s+/); const lines=[]; let line="";
+  for(const w of words){ const t=line?line+" "+w:w; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t; }
+  if(line) lines.push(line); return lines; }
+
+// ---------- сам компоновщик (гибрид) ----------
+function drawCreative(canvas, fmt, c, assets){
+  const S=SAFE[fmt]; canvas.width=S.W; canvas.height=S.H;
+  const ctx=canvas.getContext("2d");
+  const pal={ bg:c.palette?.bg||"#15151b", fg:c.palette?.fg||"#ffffff", accent:c.palette?.accent||"#d8ff3e" };
+  const L=S.left*S.W, R=S.W-S.right*S.W, T=S.top*S.H, B=S.H-S.bottom*S.H;
+  const cw=R-L;
+
+  // фон: картинка ИИ или градиент
+  if(assets.bg){ coverDraw(ctx,assets.bg,0,0,S.W,S.H); }
+  else { const g=ctx.createLinearGradient(0,0,S.W,S.H); g.addColorStop(0,pal.bg); g.addColorStop(1,shade(pal.bg,-26)); ctx.fillStyle=g; ctx.fillRect(0,0,S.W,S.H); }
+
+  // затемнение снизу для читаемости текста
+  const sc=ctx.createLinearGradient(0,S.H*0.45,0,S.H); sc.addColorStop(0,"rgba(0,0,0,0)"); sc.addColorStop(1,"rgba(0,0,0,0.62)");
+  ctx.fillStyle=sc; ctx.fillRect(0,0,S.W,S.H);
+
+  // фото товара (по центру верхней части безопасной зоны)
+  if(assets.prod){ const boxT=T+S.H*0.04, boxH=S.H*(fmt==="9:16"?0.30:0.34), boxW=cw*0.82;
+    const ir=assets.prod.width/assets.prod.height; let dw=boxW, dh=dw/ir; if(dh>boxH){dh=boxH;dw=dh*ir;}
+    ctx.drawImage(assets.prod, L+(cw-dw)/2, boxT, dw, dh); }
+
+  // логотип (верх-лево безопасной зоны, на лёгкой плашке)
+  if(assets.logo){ const lh=S.H*0.05, lr=assets.logo.width/assets.logo.height, lw=lh*lr, lx=L, ly=T+S.H*0.01;
+    ctx.fillStyle="rgba(255,255,255,0.92)"; rrect(ctx,lx-10,ly-8,lw+20,lh+16,12); ctx.fill();
+    ctx.drawImage(assets.logo,lx,ly,lw,lh); }
+
+  // CTA-кнопка (низ безопасной зоны)
+  const ctaFont=Math.round(S.W*0.034); ctx.font=`700 ${ctaFont}px Montserrat, sans-serif`;
+  const cta=(c.cta||"Подробнее").toUpperCase(); const ctaW=ctx.measureText(cta).width;
+  const padX=ctaFont*0.9, padY=ctaFont*0.55, btnH=ctaFont+padY*2, btnW=ctaW+padX*2;
+  const btnY=B-btnH;
+  ctx.fillStyle=pal.accent; rrect(ctx,L,btnY,btnW,btnH,btnH/2); ctx.fill();
+  ctx.fillStyle=contrast(pal.accent); ctx.textBaseline="middle"; ctx.textAlign="left";
+  ctx.fillText(cta, L+padX, btnY+btnH/2+1);
+
+  // заголовок (над кнопкой, перенос по словам)
+  const hSize=Math.round(S.W*(fmt==="9:16"?0.072:0.066)); ctx.font=`800 ${hSize}px Montserrat, sans-serif`;
+  const lines=wrap(ctx, c.headline||"", cw); const lh2=hSize*1.08;
+  let hy=btnY - S.H*0.03 - lines.length*lh2;
+  ctx.fillStyle=pal.fg; ctx.textAlign="left"; ctx.textBaseline="top";
+  ctx.shadowColor="rgba(0,0,0,0.35)"; ctx.shadowBlur=hSize*0.18; ctx.shadowOffsetY=2;
+  lines.forEach((ln,k)=>ctx.fillText(ln, L, hy+k*lh2));
+  ctx.shadowColor="transparent"; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+}
+
+// ---------- скачивание ----------
+function download(canvas, name){ canvas.toBlob(b=>{ const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),3000); }, "image/png"); }
+
+// ---------- карточка результата ----------
+function renderCard(c, assets){
+  const card=document.createElement("article"); card.className="card";
+  const cv916=document.createElement("canvas"), cv11=document.createElement("canvas");
+  cv916.className="cv916"; cv11.className="cv11";
+  drawCreative(cv916,"9:16",c,assets); drawCreative(cv11,"1:1",c,assets);
+
+  card.innerHTML = `
+    <div class="previews">
+      <div class="pv"><span class="pv-tag">9:16</span>
+        <div class="guide"><div class="g g-top"></div><div class="g g-bot"></div><div class="g g-right"></div></div>
+      </div>
+      <div class="pv"><span class="pv-tag">1:1</span></div>
+    </div>
+    <div class="body">
+      <span class="angle"></span>
+      <p class="ptext"></p>
+      <div class="btns">
+        <button class="btn solid" data-d="916">Скачать 9:16</button>
+        <button class="btn solid" data-d="11">Скачать 1:1</button>
+        <button class="btn" data-copy>Копировать текст</button>
+      </div>
+    </div>`;
+  card.querySelectorAll(".pv")[0].prepend(cv916);
+  card.querySelectorAll(".pv")[1].prepend(cv11);
+  card.querySelector(".angle").textContent = c.angle || "Креатив";
+  card.querySelector(".ptext").textContent = c.primary_text || "";
+  card.querySelector('[data-d="916"]').onclick=()=>download(cv916,"creative_9x16.png");
+  card.querySelector('[data-d="11"]').onclick=()=>download(cv11,"creative_1x1.png");
+  card.querySelector('[data-copy]').onclick=(e)=>{ const t=(c.headline||"")+"\n\n"+(c.primary_text||"")+"\n\n👉 "+(c.cta||"");
+    const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select();
+    try{document.execCommand("copy");}catch(_){ } ta.remove(); e.target.textContent="✓ Скопировано"; setTimeout(()=>e.target.textContent="Копировать текст",1500); };
+  $("grid").appendChild(card);
+}
+</script>
+</body>
+</html>
