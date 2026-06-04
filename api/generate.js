@@ -28,6 +28,31 @@ async function readBody(req) {
   });
 }
 
+// ---- Vercel KV (Upstash REST) для одноразовых кодов ----
+async function kvGet(key) {
+  const url = process.env.KV_REST_API_URL, tok = process.env.KV_REST_API_TOKEN;
+  if (!url || !tok) throw new Error("KV не подключён");
+  const r = await fetch(`${url}/get/${encodeURIComponent(key)}`, { headers: { Authorization: `Bearer ${tok}` } });
+  const d = await r.json();
+  return d.result ?? null;
+}
+async function kvSet(key, val) {
+  const url = process.env.KV_REST_API_URL, tok = process.env.KV_REST_API_TOKEN;
+  if (!url || !tok) return;
+  await fetch(`${url}/set/${encodeURIComponent(key)}/${encodeURIComponent(val)}`, { headers: { Authorization: `Bearer ${tok}` } });
+}
+function codeList() { return (process.env.ACCESS_CODES || "").split(/[,\s]+/).map((s) => s.trim()).filter(Boolean); }
+function isMaster(code) { return !!process.env.MASTER_CODE && code === process.env.MASTER_CODE; }
+async function checkCode(code) {
+  if (!code) return { ok: false, reason: "Введите код доступа" };
+  if (isMaster(code)) return { ok: true, master: true };
+  if (!codeList().includes(code)) return { ok: false, reason: "Неверный код" };
+  let used = false;
+  try { used = !!(await kvGet("used:" + code)); } catch (e) { /* KV не настроен — пропускаем */ }
+  if (used) return { ok: false, reason: "Этот код уже использован" };
+  return { ok: true, master: false };
+}
+
 function parseJson(text) {
   const clean = String(text).replace(/```json/gi, "").replace(/```/g, "").trim();
   // вырезаем первый JSON-массив, если модель добавила лишний текст
@@ -87,16 +112,21 @@ export default async function handler(req, res) {
   const usp = (body.usp || "").trim();
   const audience = (body.audience || "").trim();
   const platform = body.platform || "Instagram";
-
-  if (mode === "usp_improve") {
-    if (!usp) return res.status(400).json({ error: "Впишите своё УТП, чтобы его улучшить" });
-  } else if (!product) {
-    return res.status(400).json({ error: "Опишите продукт (поле product)" });
-  }
+  const code = (body.code || "").trim();
 
   try {
+    // ---------- Проверка кода для экрана входа (без списания) ----------
+    if (mode === "check_code") {
+      return res.status(200).json(await checkCode(code));
+    }
+
+    // Все рабочие режимы требуют валидный код доступа
+    const chk = await checkCode(code);
+    if (!chk.ok) return res.status(403).json({ error: chk.reason });
+
     // ---------- Улучшить готовое УТП ----------
     if (mode === "usp_improve") {
+      if (!usp) return res.status(400).json({ error: "Впишите своё УТП, чтобы его улучшить" });
       const p = `Вот черновик УТП: "${usp}". Улучши его — дай 3 более сильных, продающих варианта на русском, СОХРАНИВ исходный смысл. Каждый — одна ёмкая фраза до 12 слов. Верни ТОЛЬКО валидный JSON-массив из 3 строк, без markdown и пояснений.`;
       const arr = parseJson(await geminiText(key, p));
       return res.status(200).json({ options: Array.isArray(arr) ? arr.slice(0, 3) : [] });
@@ -104,6 +134,7 @@ export default async function handler(req, res) {
 
     // ---------- УТП ----------
     if (mode === "usp") {
+      if (!product) return res.status(400).json({ error: "Опишите продукт" });
       const p = `На основе описания продукта предложи 3 коротких сильных варианта УТП на русском.
 Описание: "${product}".
 Каждое УТП — одна ёмкая фраза до 12 слов, конкретное и убедительное.
@@ -113,47 +144,48 @@ export default async function handler(req, res) {
     }
 
     // ---------- Креативы ----------
+    if (!product) return res.status(400).json({ error: "Опишите продукт" });
+    const useImg = process.env.USE_AI_IMAGES === "true";
+    const N = 10;
+    const fields = [
+      ' "angle": "краткое название угла на русском"',
+      ' "headline": "цепляющий заголовок до 7 слов"',
+      ' "primary_text": "текст объявления 2-3 коротких предложения"',
+      ' "cta": "призыв к действию 2-4 слова"',
+      useImg ? ' "bg_prompt": "детальный промпт ФОНА на английском: премиальная рекламная фотография, профессиональный свет, кинематографичная глубина, чёткий фокус. Гамма гармонична с брендом, верхний-левый угол спокойный под логотип. БЕЗ текста, букв, цифр, логотипов и кнопок. Низ, верх и правый край спокойные/затемнённые."' : null,
+      ' "palette": {"bg": "#hex тёмный фон", "fg": "#hex светлый контрастный текст", "accent": "#hex яркий акцент"}',
+    ].filter(Boolean).join(",\n");
+
     const copyPrompt = `Ты — элитный перформанс-маркетолог и арт-директор рекламы для соцсетей.
 
 Продукт/услуга: ${product}
 УТП: ${usp || "не указано — выведи сам из продукта"}
 Целевая аудитория: ${audience || "не указана — определи сам"}
 Площадка: ${platform} (вертикальный контент, сторис/reels)
+${usp ? `КЛЮЧЕВОЕ ТРЕБОВАНИЕ: заголовок и текст КАЖДОГО креатива должны прямо доносить УТП — "${usp}". В нескольких заголовках отрази суть УТП почти дословно.` : ""}
 
-${usp ? `КЛЮЧЕВОЕ ТРЕБОВАНИЕ: заголовок (headline) и текст (primary_text) КАЖДОГО креатива должны прямо доносить это УТП — "${usp}". Не подменяй его другим смыслом. В одном из двух заголовков отрази суть УТП почти дословно.` : ""}
-
-Сгенерируй РОВНО 2 рекламных креатива под разные маркетинговые углы${usp ? ", но оба раскрывают указанное УТП" : ""}.
-Верни ТОЛЬКО валидный JSON-массив, без markdown и пояснений. Формат элемента:
+Сгенерируй РОВНО ${N} РАЗНЫХ рекламных креативов — каждый под свой маркетинговый угол (боль/решение, выгода, результат, эмоция, срочность, социальное доказательство, любопытство и т.д.). Заголовки НЕ должны повторяться.
+Верни ТОЛЬКО валидный JSON-массив из ${N} элементов, без markdown и пояснений. Формат элемента:
 {
- "angle": "краткое название угла на русском",
- "headline": "цепляющий заголовок до 7 слов",
- "primary_text": "текст объявления 2-3 коротких предложения",
- "cta": "призыв к действию 2-4 слова",
- "bg_prompt": "детальный промпт ФОНА на английском для AI-генератора. Это должна быть ПРЕМИАЛЬНАЯ рекламная фотография высокого качества: профессиональный свет, кинематографичная глубина, чёткий фокус, дорогая атмосфера, релевантная продукту сцена или фактура. Один сильный визуальный центр. Подбери цветовую гамму, гармоничную с брендом, и оставь верхний-левый угол спокойным/однотонным под логотип. ВАЖНО: на фоне НЕ должно быть никакого текста, букв, цифр, логотипов и кнопок (текст наложим отдельно). Нижнюю треть, верх и правый край оставь спокойными/затемнёнными для читаемости наложенного текста.",
- "palette": {"bg": "#hex тёмный фон", "fg": "#hex светлый контрастный текст", "accent": "#hex яркий акцент"}
+${fields}
 }`;
 
     const concepts = parseJson(await geminiText(key, copyPrompt));
-    const list = Array.isArray(concepts) ? concepts.slice(0, 2) : [];
+    const list = Array.isArray(concepts) ? concepts.slice(0, N) : [];
 
-    // Фон через ИИ — только если включено (иначе фронт рисует градиент бесплатно).
-    if (process.env.USE_AI_IMAGES === "true") {
-      await Promise.all(
-        list.map(async (c) => {
-          try {
-            // Один фон 9:16 на концепт; формат 1:1 фронт получает кропом по центру (дешевле и быстрее).
-            c.bg = await geminiImage(key, c.bg_prompt + " Vertical 9:16 composition.", "9:16");
-          } catch (e) {
-            c.bg = null;
-            c.bgError = String(e.message || e);
-          }
-        })
-      );
+    if (useImg) {
+      await Promise.all(list.map(async (c) => {
+        try { c.bg = await geminiImage(key, (c.bg_prompt || "premium advertising background") + " Vertical 9:16 composition.", "9:16"); }
+        catch (e) { c.bg = null; c.bgError = String(e.message || e); }
+      }));
     } else {
       list.forEach((c) => (c.bg = null));
     }
 
-    return res.status(200).json({ concepts: list });
+    // списываем код (мастер-код не сгорает)
+    if (!chk.master) { try { await kvSet("used:" + code, String(Date.now())); } catch (e) {} }
+
+    return res.status(200).json({ concepts: list, master: !!chk.master });
   } catch (e) {
     return res.status(500).json({ error: String(e.message || e) });
   }
