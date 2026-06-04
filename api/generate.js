@@ -41,6 +41,19 @@ async function kvSet(key, val) {
   if (!url || !tok) return;
   await fetch(`${url}/set/${encodeURIComponent(key)}/${encodeURIComponent(val)}`, { headers: { Authorization: `Bearer ${tok}` } });
 }
+// статус многих ключей за один запрос (для админки)
+async function kvMget(keys) {
+  const url = process.env.KV_REST_API_URL, tok = process.env.KV_REST_API_TOKEN;
+  if (!url || !tok) throw new Error("KV не подключён");
+  if (!keys.length) return [];
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
+    body: JSON.stringify(["MGET", ...keys]),
+  });
+  const d = await r.json();
+  return d.result || [];
+}
 function codeList() { return (process.env.ACCESS_CODES || "").split(/[,\s]+/).map((s) => s.trim()).filter(Boolean); }
 function isMaster(code) { return !!process.env.MASTER_CODE && code === process.env.MASTER_CODE; }
 async function checkCode(code) {
@@ -118,6 +131,17 @@ export default async function handler(req, res) {
     // ---------- Проверка кода для экрана входа (без списания) ----------
     if (mode === "check_code") {
       return res.status(200).json(await checkCode(code));
+    }
+
+    // ---------- Админка (только по мастер-коду): статус всех кодов ----------
+    if (mode === "admin") {
+      if (!isMaster(code)) return res.status(403).json({ error: "Доступ только по мастер-коду" });
+      const codes = codeList();
+      let vals = [];
+      try { vals = await kvMget(codes.map((c) => "used:" + c)); } catch (e) { vals = codes.map(() => null); }
+      const items = codes.map((c, i) => ({ code: c, used: !!vals[i], at: vals[i] ? Number(vals[i]) : null }));
+      const used = items.filter((x) => x.used).length;
+      return res.status(200).json({ total: codes.length, used, available: codes.length - used, items });
     }
 
     // Все рабочие режимы требуют валидный код доступа
