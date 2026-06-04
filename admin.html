@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Админка · Креативная студия</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#0b0b0c; --panel:#141417; --panel2:#1b1b1f; --line:#2a2a30; --ink:#f3f0e7; --dim:#97938a; --accent:#d8ff3e; --red:#ff8b6b; }
+  *{box-sizing:border-box;}
+  body{margin:0; background:radial-gradient(110% 80% at 100% 0%, #17170f 0%, transparent 55%), var(--bg);
+    color:var(--ink); font-family:'Instrument Sans',system-ui,sans-serif; min-height:100vh;}
+  .wrap{max-width:1000px; margin:0 auto; padding:42px 22px 70px;}
+  h1{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:clamp(30px,5vw,48px); letter-spacing:-.02em; margin:0 0 6px;}
+  .hl{color:var(--accent);} .sub{color:var(--dim); margin:0 0 28px; font-size:15px;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 24px 60px -30px #000;}
+  .lbl{display:block; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--dim); font-weight:600; margin-bottom:8px;}
+  input{width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:12px; color:var(--ink); padding:13px 14px; font:inherit; font-size:15px;}
+  input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px #d8ff3e22;}
+  .btn{background:var(--accent); color:#0b0b0c; border:none; padding:14px 18px; border-radius:12px;
+    font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:15px; cursor:pointer; transition:.16s;}
+  .btn:hover:not(:disabled){transform:translateY(-1px);} .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink); font-family:'Instrument Sans';}
+  .btn.ghost:hover{border-color:var(--accent); color:var(--accent);}
+  .err{color:var(--red); font-size:14px; margin-top:12px;}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:24px 0;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px;}
+  .stat .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:38px; line-height:1;}
+  .stat .t{color:var(--dim); font-size:13px; margin-top:6px;}
+  .stat.green .n{color:var(--accent);} .stat.red .n{color:var(--red);}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;}
+  .toolbar input{flex:1; min-width:180px;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:720px){ .cols{grid-template-columns:1fr;} .stats{grid-template-columns:repeat(3,1fr);} }
+  .col h2{font-family:'Bricolage Grotesque'; font-size:18px; margin:0 0 12px; display:flex; align-items:center; gap:8px;}
+  .list{display:flex; flex-direction:column; gap:6px; max-height:460px; overflow:auto; padding-right:4px;}
+  .chip{display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--panel2);
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;}
+  .chip.free{cursor:pointer;} .chip.free:hover{border-color:var(--accent);}
+  .code{font-family:ui-monospace,Menlo,monospace; letter-spacing:.02em;}
+  .date{color:var(--dim); font-size:12px; white-space:nowrap;}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .dot.g{background:var(--accent);} .dot.r{background:var(--red);}
+  .hint{color:var(--dim); font-size:12px; margin-top:8px;}
+  .copied{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--accent); color:#0b0b0c;
+    padding:10px 18px; border-radius:100px; font-weight:700; font-size:14px; opacity:0; transition:.2s; pointer-events:none;}
+  .copied.show{opacity:1;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Админка <span class="hl">кодов</span></h1>
+    <p class="sub">Какие коды уже использованы, а какие можно выдавать. Вход по мастер-коду.</p>
+
+    <section class="panel" id="gate" style="max-width:420px;">
+      <label class="lbl">Мастер-код</label>
+      <input type="password" id="master" placeholder="Ваш MASTER_CODE" autocomplete="off" />
+      <button class="btn" id="loginBtn" style="margin-top:14px; width:100%;">Войти →</button>
+      <div class="err" id="gateErr"></div>
+    </section>
+
+    <div id="dash" style="display:none;">
+      <div class="stats">
+        <div class="stat"><div class="n" id="sTotal">—</div><div class="t">всего кодов</div></div>
+        <div class="stat green"><div class="n" id="sFree">—</div><div class="t">свободны</div></div>
+        <div class="stat red"><div class="n" id="sUsed">—</div><div class="t">использованы</div></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" id="copyNext">Скопировать следующий свободный код</button>
+        <button class="btn ghost" id="refreshBtn">↻ Обновить</button>
+        <input type="text" id="search" placeholder="Поиск по коду…" />
+      </div>
+
+      <div class="cols">
+        <div class="col">
+          <h2><span class="dot g"></span> Свободные <span id="cFree" class="date"></span></h2>
+          <div class="list" id="freeList"></div>
+          <div class="hint">Нажмите на код, чтобы скопировать его для выдачи клиенту.</div>
+        </div>
+        <div class="col">
+          <h2><span class="dot r"></span> Использованные <span id="cUsed" class="date"></span></h2>
+          <div class="list" id="usedList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="copied" id="toast">Скопировано</div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+let master="", data=null;
+
+async function api(payload){
+  const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const d=await r.json(); if(!r.ok) throw new Error(d.error||("Ошибка "+r.status)); return d;
+}
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1400); }
+function copy(text){ try{ const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }catch(e){ try{navigator.clipboard.writeText(text);}catch(_){} } toast("Скопировано: "+text); }
+
+async function load(){
+  try{
+    data=await api({ mode:"admin", code:master });
+    $("sTotal").textContent=data.total;
+    $("sFree").textContent=data.available;
+    $("sUsed").textContent=data.used;
+    render();
+  }catch(e){ $("gateErr").textContent="Ошибка: "+e.message; }
+}
+function fmt(ts){ if(!ts) return ""; try{ return new Date(ts).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } }
+
+function render(){
+  if(!data) return;
+  const q=$("search").value.trim().toUpperCase();
+  const free=data.items.filter(x=>!x.used && x.code.toUpperCase().includes(q));
+  const used=data.items.filter(x=> x.used && x.code.toUpperCase().includes(q));
+  $("cFree").textContent="("+free.length+")"; $("cUsed").textContent="("+used.length+")";
+
+  const fl=$("freeList"); fl.innerHTML="";
+  free.forEach(x=>{ const d=document.createElement("div"); d.className="chip free";
+    d.innerHTML='<span class="code">'+x.code+'</span><span class="date">копировать</span>';
+    d.onclick=()=>copy(x.code); fl.appendChild(d); });
+  if(!free.length) fl.innerHTML='<div class="hint">Нет свободных кодов по фильтру.</div>';
+
+  const ul=$("usedList"); ul.innerHTML="";
+  used.sort((a,b)=>(b.at||0)-(a.at||0)).forEach(x=>{ const d=document.createElement("div"); d.className="chip";
+    d.innerHTML='<span class="code">'+x.code+'</span><span class="date">'+fmt(x.at)+'</span>'; ul.appendChild(d); });
+  if(!used.length) ul.innerHTML='<div class="hint">Пока ни один код не использован.</div>';
+}
+
+$("loginBtn").addEventListener("click", async ()=>{
+  const code=$("master").value.trim(); if(!code){ $("gateErr").textContent="Введите мастер-код."; return; }
+  $("loginBtn").disabled=true; $("loginBtn").textContent="Проверяю…"; $("gateErr").textContent="";
+  master=code;
+  try{ await load(); if(data){ $("gate").style.display="none"; $("dash").style.display="block"; } }
+  finally{ $("loginBtn").disabled=false; $("loginBtn").textContent="Войти →"; }
+});
+$("master").addEventListener("keydown",e=>{ if(e.key==="Enter") $("loginBtn").click(); });
+$("refreshBtn").addEventListener("click", load);
+$("search").addEventListener("input", render);
+$("copyNext").addEventListener("click", ()=>{
+  if(!data) return; const next=data.items.find(x=>!x.used);
+  if(next) copy(next.code); else toast("Свободных кодов не осталось");
+});
+</script>
+</body>
+</html>
