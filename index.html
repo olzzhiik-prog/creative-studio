@@ -102,7 +102,14 @@
         в форматах 9:16 и 1:1, с учётом безопасных зон площадок. Скачал и запустил.</p>
     </header>
 
-    <section class="panel">
+    <section class="panel" id="gate" style="max-width:460px;">
+      <label class="lbl">Код доступа</label>
+      <input type="text" id="code" placeholder="Введите код, который вам выдали" autocomplete="off" />
+      <button class="go" id="codeBtn" style="margin-top:16px;">Войти →</button>
+      <div class="status" id="gateStatus"></div>
+    </section>
+
+    <section class="panel" id="app" style="display:none;">
       <label class="lbl">Что рекламируем?</label>
       <textarea id="product" rows="3" placeholder="Напр.: онлайн-курс английского для IT-специалистов, разговорная практика с носителями, первый урок бесплатно"></textarea>
 
@@ -171,6 +178,9 @@ let platform = "Instagram";
 let logoData = null, prodData = null;
 let currentUsp = "";
 let currentExtra = "";
+let accessCode = "";
+let isMasterCode = false;
+let codeBurned = false;
 
 // генератор случайной раскладки — тысячи комбинаций из небольшого кода
 function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
@@ -228,6 +238,23 @@ async function api(payload){
   return d;
 }
 
+// ---------- вход по коду доступа ----------
+function gateStatus(m){ const s=$("gateStatus"); s.textContent=m||""; s.className="status err"; }
+$("codeBtn").addEventListener("click", async ()=>{
+  const code=$("code").value.trim();
+  if(!code){ gateStatus("Введите код."); return; }
+  $("codeBtn").disabled=true; $("codeBtn").textContent="Проверяю…";
+  try{
+    const r=await api({ mode:"check_code", code });
+    if(r.ok){ accessCode=code; isMasterCode=!!r.master; codeBurned=false;
+      $("gate").style.display="none"; $("app").style.display="block";
+      if(isMasterCode) status("Мастер-доступ активен — код не сгорает."); else status(""); }
+    else gateStatus(r.reason || "Неверный код.");
+  }catch(e){ gateStatus("Ошибка: "+e.message); }
+  finally{ $("codeBtn").disabled=false; $("codeBtn").textContent="Войти →"; }
+});
+$("code").addEventListener("keydown", e=>{ if(e.key==="Enter") $("codeBtn").click(); });
+
 // ---------- УТП ----------
 function showUspOptions(options){
   const box=$("uspOpts");
@@ -246,33 +273,42 @@ async function uspFlow(btn, payload){
 $("uspBtn").addEventListener("click", ()=>{
   const product=$("product").value.trim();
   if(!product){ status("Сначала опишите продукт — по нему сгенерим УТП.", true); return; }
-  uspFlow($("uspBtn"), { mode:"usp", product });
+  uspFlow($("uspBtn"), { mode:"usp", product, code:accessCode });
 });
 $("improveBtn").addEventListener("click", ()=>{
   const usp=$("usp").value.trim();
   if(!usp){ status("Сначала впишите своё УТП, чтобы его улучшить.", true); return; }
-  uspFlow($("improveBtn"), { mode:"usp_improve", usp });
+  uspFlow($("improveBtn"), { mode:"usp_improve", usp, code:accessCode });
 });
 
 // ---------- генерация креативов ----------
 $("goBtn").addEventListener("click", async ()=>{
+  if(codeBurned){ status("Этот код уже использован. Для новой партии нужен новый код.", true); return; }
   const product=$("product").value.trim();
   if(!product){ status("Опишите, что рекламируем.", true); return; }
-  $("goBtn").disabled=true; $("goBtn").textContent="Генерирую креативы…";
-  status("ИИ пишет тексты и рисует фон, это занимает 10–30 секунд…");
+  $("goBtn").disabled=true; $("goBtn").textContent="Генерирую 10 креативов…";
+  status("ИИ готовит 10 креативов — это может занять до минуты, не закрывайте страницу…");
   $("grid").innerHTML="";
   try{
     await fontsReady();
-    const { concepts=[] } = await api({ mode:"creatives", product, usp:$("usp").value.trim(), audience:$("audience").value.trim(), platform });
+    const { concepts=[], master } = await api({ mode:"creatives", product, usp:$("usp").value.trim(), audience:$("audience").value.trim(), platform, code:accessCode });
     if(!concepts.length) throw new Error("пустой ответ модели");
     currentUsp = $("usp").value.trim();
     currentExtra = $("extra").value.trim();
     const imgs = await preloadImages(concepts);
     let prevLay=null;
     concepts.forEach((c,i)=>{ const lay=differentLayout(prevLay); prevLay=lay; renderCard(c, imgs[i], lay); });
-    status("");
+    if(!isMasterCode && !master){
+      codeBurned=true;
+      status("Готово! Ваши "+concepts.length+" креативов ниже (по 2 формата). Код использован — это была разовая генерация. Скачайте все картинки.");
+    } else {
+      status("Готово! "+concepts.length+" креативов ниже. Мастер-доступ: код не сгорел.");
+    }
   }catch(e){ status("Не получилось: "+e.message+". Попробуй ещё раз.", true); }
-  finally{ $("goBtn").disabled=false; $("goBtn").textContent="Сгенерировать креативы →"; }
+  finally{
+    if(codeBurned){ $("goBtn").disabled=true; $("goBtn").textContent="Код использован"; }
+    else { $("goBtn").disabled=false; $("goBtn").textContent="Сгенерировать креативы →"; }
+  }
 });
 
 // ---------- шрифты для canvas ----------
