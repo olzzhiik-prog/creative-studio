@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Креативная студия</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0b0c; --panel:#141417; --panel2:#1b1b1f; --line:#2a2a30;
+    --ink:#f3f0e7; --dim:#97938a; --accent:#d8ff3e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:radial-gradient(110% 80% at 100% 0%, #17170f 0%, transparent 55%), var(--bg);
+    color:var(--ink); font-family:'Instrument Sans',system-ui,sans-serif; min-height:100vh;}
+  .wrap{max-width:1080px; margin:0 auto; padding:42px 22px 70px;}
+  .topnav{display:flex; justify-content:space-between; align-items:center; margin-bottom:26px;}
+  .navlink{color:var(--dim); text-decoration:none; font-size:14px; font-weight:600; border:1px solid var(--line); padding:8px 14px; border-radius:10px; transition:.15s;}
+  .navlink:hover{color:var(--accent); border-color:var(--accent);}
+  h1{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:clamp(34px,6vw,58px);
+    line-height:.95; letter-spacing:-.02em; margin:0 0 12px;}
+  .hl{color:var(--accent);}
+  .sub{color:var(--dim); max-width:560px; font-size:15.5px; line-height:1.5; margin:0 0 28px;}
+
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:24px;
+    box-shadow:0 24px 60px -30px #000;}
+  .lbl{display:block; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--dim); font-weight:600; margin-bottom:8px;}
+  textarea,input[type=text]{width:100%; background:var(--panel2); border:1px solid var(--line);
+    border-radius:12px; color:var(--ink); padding:13px 14px; font:inherit; font-size:15px; resize:vertical; transition:.18s;}
+  textarea::placeholder,input::placeholder{color:#5f5c55;}
+  textarea:focus,input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px #d8ff3e22;}
+  .field{margin-top:16px;}
+  .lbl-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
+  .lbl-row .lbl{margin-bottom:0;}
+  .lbl-actions{display:flex; gap:8px;}
+  .mini{background:#d8ff3e1a; border:1px solid #d8ff3e55; color:var(--accent); padding:6px 11px;
+    border-radius:8px; font:inherit; font-weight:600; font-size:12.5px; cursor:pointer; transition:.16s;}
+  .mini:hover:not(:disabled){background:#d8ff3e2e;}
+  .mini:disabled{opacity:.4; cursor:not-allowed;}
+  .usp-opts{display:flex; flex-direction:column; gap:7px; margin-top:10px;}
+  .usp-hint{font-size:11px; color:var(--dim);}
+  .usp-chip{text-align:left; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+    padding:10px 12px; border-radius:10px; font:inherit; font-size:13.5px; line-height:1.4; cursor:pointer; transition:.16s;}
+  .usp-chip:hover{border-color:var(--accent); color:var(--accent);}
+  .seg{display:flex; gap:8px; flex-wrap:wrap;}
+  .seg-btn{flex:1; min-width:120px; background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+    padding:11px 10px; border-radius:11px; font:inherit; font-weight:600; font-size:14px; cursor:pointer; transition:.16s;}
+  .seg-btn:hover{color:var(--ink); border-color:#3a3a42;}
+  .seg-btn.on{background:var(--ink); color:#0b0b0c; border-color:var(--ink);}
+  .logo-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .logo-btn{display:inline-flex; align-items:center; background:var(--panel2); border:1px dashed #3a3a42;
+    color:var(--ink); padding:11px 16px; border-radius:11px; font-weight:600; font-size:14px; cursor:pointer; transition:.16s;}
+  .logo-btn:hover{border-color:var(--accent); color:var(--accent);}
+  .logo-prev{display:flex; align-items:center; gap:6px;}
+  .logo-prev img{height:38px; width:38px; object-fit:contain; border-radius:8px; background:#fff; padding:3px; border:1px solid var(--line);}
+  .logo-rm{background:transparent; border:1px solid var(--line); color:var(--dim); width:28px; height:28px;
+    border-radius:7px; cursor:pointer; font-size:12px; line-height:1;}
+  .go{margin-top:22px; width:100%; background:var(--accent); color:#0b0b0c; border:none; padding:16px;
+    border-radius:13px; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:17px; cursor:pointer; transition:.16s;}
+  .go:hover:not(:disabled){transform:translateY(-1px); box-shadow:0 14px 30px -12px #d8ff3e88;}
+  .go:disabled{opacity:.45; cursor:not-allowed;}
+  .status{margin-top:14px; font-size:14px; line-height:1.45; color:var(--dim);}
+  .status.err{color:#ff8b6b;}
+
+  .grid{display:grid; gap:18px; margin-top:30px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));}
+  .card{border:1px solid var(--line); border-radius:18px; overflow:hidden; background:var(--panel);}
+  .previews{display:flex; gap:14px; padding:16px; flex-wrap:wrap; justify-content:center;
+    background:radial-gradient(120% 100% at 50% 0%, #ffffff08, transparent 70%);}
+  .pv{position:relative;}
+  .pv canvas{display:block; border-radius:10px; box-shadow:0 10px 24px -14px #000;}
+  .pv .cv916{width:150px; height:auto;}
+  .pv .cv11{width:224px; height:auto;}
+  .pv-tag{position:absolute; top:8px; right:8px; z-index:3; font-size:10px; font-weight:700;
+    background:rgba(0,0,0,.55); color:#fff; padding:2px 7px; border-radius:6px;}
+  /* направляющие безопасных зон (только на превью, в скачанный PNG не попадают) */
+  .guide{position:absolute; inset:0; z-index:2; pointer-events:none;}
+  .guide .g{position:absolute; background:repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 5px, rgba(255,255,255,.13) 5px 10px);}
+  .g-top{top:0; left:0; right:0; height:12%; border-bottom:1px dashed rgba(255,255,255,.3);}
+  .g-bot{bottom:0; left:0; right:0; height:20%; border-top:1px dashed rgba(255,255,255,.3);}
+  .g-right{top:12%; bottom:20%; right:0; width:9%;}
+
+  .body{padding:18px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:12px;}
+  .angle{align-self:flex-start; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent);
+    border:1px solid #d8ff3e44; padding:4px 9px; border-radius:6px; font-weight:600;}
+  .ptext{margin:0; font-size:15px; line-height:1.5; color:#dedbd2;}
+  .btns{display:flex; gap:8px; flex-wrap:wrap;}
+  .btn{flex:1; min-width:120px; background:transparent; border:1px solid var(--line); color:var(--ink);
+    padding:11px 8px; border-radius:10px; font:inherit; font-weight:600; font-size:13px; cursor:pointer; transition:.16s;}
+  .btn:hover{border-color:var(--accent); color:var(--accent);}
+  .btn.solid{background:var(--accent); color:#0b0b0c; border-color:var(--accent);}
+  .foot{margin-top:34px; text-align:center; color:#605d56; font-size:13px; line-height:1.5;}
+  .legend{display:flex; align-items:center; gap:7px; padding:0 16px 14px; font-size:11px; color:#6f6c64;}
+  .sw{flex:none; width:16px; height:16px; border-radius:4px; border:1px dashed rgba(255,255,255,.35);
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 4px, rgba(255,255,255,.3) 4px 8px);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topnav">
+      <a href="index.html" class="navlink">← На главную</a>
+      <a href="admin.html" class="navlink">Админка</a>
+    </div>
+    <header>
+      <h1>Креативная <span class="hl">студия</span></h1>
+      <p class="sub">Опиши продукт — получи готовые рекламные креативы под Instagram и TikTok
+        в форматах 9:16 и 1:1, с учётом безопасных зон площадок. Скачал и запустил.</p>
+    </header>
+
+    <section class="panel" id="gate" style="max-width:460px;">
+      <label class="lbl">Код доступа</label>
+      <input type="text" id="code" placeholder="Введите код, который вам выдали" autocomplete="off" />
+      <button class="go" id="codeBtn" style="margin-top:16px;">Войти →</button>
+      <div class="status" id="gateStatus"></div>
+    </section>
+
+    <section class="panel" id="app" style="display:none;">
+      <label class="lbl">Что рекламируем?</label>
+      <textarea id="product" rows="3" placeholder="Напр.: онлайн-курс английского для IT-специалистов, разговорная практика с носителями, первый урок бесплатно"></textarea>
+
+      <div class="field">
+        <label class="lbl">Аудитория (необязательно)</label>
+        <input type="text" id="audience" placeholder="Напр.: разработчики 25–40 лет, готовятся к работе за рубежом" />
+      </div>
+
+      <div class="field">
+        <div class="lbl-row">
+          <label class="lbl">УТП — чем вы лучше (необязательно)</label>
+          <div class="lbl-actions">
+            <button class="mini" id="improveBtn">Улучшить</button>
+            <button class="mini" id="uspBtn">✨ Сгенерить УТП</button>
+          </div>
+        </div>
+        <input type="text" id="usp" placeholder="Напр.: первый результат за 2 недели, иначе вернём деньги" />
+        <div class="usp-opts" id="uspOpts" style="display:none"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Доп. текст — что ещё показать на креативе (необязательно)</label>
+        <input type="text" id="extra" placeholder="Напр.: мини-группы, проверенные преподаватели, 100% поступление на грант" />
+      </div>
+
+      <div class="field">
+        <label class="lbl">Площадка</label>
+        <div class="seg" id="seg">
+          <button class="seg-btn on" data-p="Instagram">Instagram</button>
+          <button class="seg-btn" data-p="TikTok">TikTok</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Логотип (необязательно)</label>
+        <div class="logo-row">
+          <label class="logo-btn"><span id="logoLbl">Загрузить логотип</span>
+            <input type="file" id="logo" accept="image/*" hidden /></label>
+          <div class="logo-prev" id="logoPrev" style="display:none">
+            <img id="logoImg" alt="logo" /><button class="logo-rm" id="logoRm">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Фото товара (если рекламируете товар)</label>
+        <div class="logo-row">
+          <label class="logo-btn"><span id="prodLbl">Загрузить фото товара</span>
+            <input type="file" id="prod" accept="image/*" hidden /></label>
+          <div class="logo-prev" id="prodPrev" style="display:none">
+            <img id="prodImg" alt="product" /><button class="logo-rm" id="prodRm">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="go" id="goBtn">Сгенерировать креативы →</button>
+      <div class="status" id="status"></div>
+    </section>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+<script>
+// ---------- состояние ----------
+let platform = "Instagram";
+let logoData = null, prodData = null;
+let currentUsp = "";
+let currentExtra = "";
+let accessCode = "";
+let isMasterCode = false;
+let codeBurned = false;
+
+// генератор случайной раскладки — тысячи комбинаций из небольшого кода
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function chance(p){ return Math.random()<p; }
+function randomLayout(){
+  const vpos = pick(["bottom","bottom","center","top"]);          // низ чаще
+  const align = chance(0.4) ? "center" : "left";
+  const bar = align==="left" && chance(0.6);                      // акцентная полоса
+  const button = chance(0.8);                                     // кнопка чаще есть
+  const btnStyle = pick(["round","round","rect","outline"]);      // форма кнопки
+  const panel = pick(["none","none","none","card"]);              // тёмная плашка-подложка
+  const highlight = chance(0.45);                                 // последняя строка акцентом
+  let logo;
+  if(vpos==="top") logo = "bl";
+  else logo = align==="center" ? pick(["tc","tl"]) : pick(["tl","tl","tc"]);
+  const hScale = 0.9 + Math.random()*0.2;                         // лёгкий разброс размера заголовка
+  return { vpos, align, bar, button, btnStyle, panel, highlight, logo, hScale };
+}
+// раскладка, заметно отличающаяся от предыдущей (чтобы два креатива не совпали)
+function differentLayout(prev){
+  for(let i=0;i<14;i++){ const l=randomLayout();
+    if(!prev || l.vpos!==prev.vpos || l.align!==prev.align || l.button!==prev.button) return l; }
+  return randomLayout();
+}
+
+const $ = (id) => document.getElementById(id);
+
+// безопасные зоны (доли холста). 9:16 — строже из-за UI Instagram/TikTok.
+const SAFE = {
+  "9:16": { W:1080, H:1920, top:.12, bottom:.20, left:.06, right:.09 },
+  "1:1":  { W:1080, H:1080, top:.07, bottom:.07, left:.07, right:.07 },
+};
+
+// ---------- загрузка файлов ----------
+function fileToData(file, cb){ const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(file); }
+$("logo").addEventListener("change", e=>{ const f=e.target.files[0]; if(!f)return;
+  fileToData(f, d=>{ logoData=d; $("logoImg").src=d; $("logoPrev").style.display="flex"; $("logoLbl").textContent="Сменить логотип"; }); });
+$("logoRm").addEventListener("click", ()=>{ logoData=null; $("logoPrev").style.display="none"; $("logoLbl").textContent="Загрузить логотип"; $("logo").value=""; });
+$("prod").addEventListener("change", e=>{ const f=e.target.files[0]; if(!f)return;
+  fileToData(f, d=>{ prodData=d; $("prodImg").src=d; $("prodPrev").style.display="flex"; $("prodLbl").textContent="Сменить фото"; }); });
+$("prodRm").addEventListener("click", ()=>{ prodData=null; $("prodPrev").style.display="none"; $("prodLbl").textContent="Загрузить фото товара"; $("prod").value=""; });
+
+// ---------- площадка ----------
+$("seg").addEventListener("click", e=>{ const b=e.target.closest(".seg-btn"); if(!b)return;
+  platform=b.dataset.p; [...$("seg").children].forEach(x=>x.classList.toggle("on", x===b)); });
+
+// ---------- статус ----------
+function status(msg, err){ const s=$("status"); s.textContent=msg||""; s.className="status"+(err?" err":""); }
+
+// ---------- API ----------
+async function api(payload){
+  const r = await fetch("/api/generate", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+  const d = await r.json();
+  if(!r.ok) throw new Error(d.error || ("Ошибка "+r.status));
+  return d;
+}
+
+// ---------- вход по коду доступа ----------
+function gateStatus(m){ const s=$("gateStatus"); s.textContent=m||""; s.className="status err"; }
+$("codeBtn").addEventListener("click", async ()=>{
+  const code=$("code").value.trim();
+  if(!code){ gateStatus("Введите код."); return; }
+  $("codeBtn").disabled=true; $("codeBtn").textContent="Проверяю…";
+  try{
+    const r=await api({ mode:"check_code", code });
+    if(r.ok){ accessCode=code; isMasterCode=!!r.master; codeBurned=false;
+      $("gate").style.display="none"; $("app").style.display="block";
+      if(isMasterCode) status("Мастер-доступ активен — код не сгорает."); else status(""); }
+    else gateStatus(r.reason || "Неверный код.");
+  }catch(e){ gateStatus("Ошибка: "+e.message); }
+  finally{ $("codeBtn").disabled=false; $("codeBtn").textContent="Войти →"; }
+});
+$("code").addEventListener("keydown", e=>{ if(e.key==="Enter") $("codeBtn").click(); });
+
+// ---------- УТП ----------
+function showUspOptions(options){
+  const box=$("uspOpts");
+  box.innerHTML='<span class="usp-hint">Нажмите, чтобы подставить:</span>';
+  options.forEach(u=>{ const b=document.createElement("button"); b.className="usp-chip"; b.textContent=u;
+    b.onclick=()=>{ $("usp").value=u; }; box.appendChild(b); });
+  box.style.display = options.length ? "flex" : "none";
+}
+async function uspFlow(btn, payload){
+  if(btn.disabled) return;
+  const old=btn.textContent; btn.disabled=true; btn.textContent="…";
+  try{ const { options=[] } = await api(payload); showUspOptions(options); }
+  catch(e){ status("Не удалось: "+e.message, true); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+$("uspBtn").addEventListener("click", ()=>{
+  const product=$("product").value.trim();
+  if(!product){ status("Сначала опишите продукт — по нему сгенерим УТП.", true); return; }
+  uspFlow($("uspBtn"), { mode:"usp", product, code:accessCode });
+});
+$("improveBtn").addEventListener("click", ()=>{
+  const usp=$("usp").value.trim();
+  if(!usp){ status("Сначала впишите своё УТП, чтобы его улучшить.", true); return; }
+  uspFlow($("improveBtn"), { mode:"usp_improve", usp, code:accessCode });
+});
+
+// ---------- генерация креативов ----------
+$("goBtn").addEventListener("click", async ()=>{
+  if(codeBurned){ status("Этот код уже использован. Для новой партии нужен новый код.", true); return; }
+  const product=$("product").value.trim();
+  if(!product){ status("Опишите, что рекламируем.", true); return; }
+  $("goBtn").disabled=true; $("goBtn").textContent="Генерирую 10 креативов…";
+  status("ИИ готовит 10 креативов — это может занять до минуты, не закрывайте страницу…");
+  $("grid").innerHTML="";
+  try{
+    await fontsReady();
+    const { concepts=[], master } = await api({ mode:"creatives", product, usp:$("usp").value.trim(), audience:$("audience").value.trim(), platform, code:accessCode });
+    if(!concepts.length) throw new Error("пустой ответ модели");
+    currentUsp = $("usp").value.trim();
+    currentExtra = $("extra").value.trim();
+    const imgs = await preloadImages(concepts);
+    let prevLay=null;
+    concepts.forEach((c,i)=>{ const lay=differentLayout(prevLay); prevLay=lay; renderCard(c, imgs[i], lay); });
+    if(!isMasterCode && !master){
+      codeBurned=true;
+      status("Готово! Ваши "+concepts.length+" креативов ниже (по 2 формата). Код использован — это была разовая генерация. Скачайте все картинки.");
+    } else {
+      status("Готово! "+concepts.length+" креативов ниже. Мастер-доступ: код не сгорел.");
+    }
+  }catch(e){ status("Не получилось: "+e.message+". Попробуй ещё раз.", true); }
+  finally{
+    if(codeBurned){ $("goBtn").disabled=true; $("goBtn").textContent="Код использован"; }
+    else { $("goBtn").disabled=false; $("goBtn").textContent="Сгенерировать креативы →"; }
+  }
+});
+
+// ---------- шрифты для canvas ----------
+async function fontsReady(){
+  try{ await Promise.all([document.fonts.load("800 100px Montserrat"), document.fonts.load("700 100px Montserrat")]); await document.fonts.ready; }catch(e){}
+}
+
+// ---------- загрузка картинок ----------
+function loadImg(src){ return new Promise((res,rej)=>{ if(!src){res(null);return;} const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; }); }
+async function preloadImages(concepts){
+  const logo = await loadImg(logoData);
+  const prod = await loadImg(prodData);
+  const bgs = await Promise.all(concepts.map(c=>loadImg(c.bg)));
+  return concepts.map((c,i)=>({ bg:bgs[i], logo, prod }));
+}
+
+// ---------- утилиты canvas ----------
+function rrect(ctx,x,y,w,h,r){ if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);} else {ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();} }
+function shade(hex,amt){ try{let h=hex.replace("#","");if(h.length===3)h=h.split("").map(x=>x+x).join("");const n=parseInt(h,16);let r=(n>>16)+amt,g=((n>>8)&255)+amt,b=(n&255)+amt;r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));return"#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}catch(e){return hex;} }
+function contrast(hex){ try{let h=hex.replace("#","");if(h.length===3)h=h.split("").map(x=>x+x).join("");const n=parseInt(h,16);const lum=(0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))/255;return lum>0.6?"#0b0b0c":"#ffffff";}catch(e){return"#0b0b0c";} }
+function coverDraw(ctx,img,dx,dy,dw,dh){ const ir=img.width/img.height, dr=dw/dh; let sw,sh,sx,sy;
+  if(ir>dr){ sh=img.height; sw=sh*dr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/dr; sx=0; sy=(img.height-sh)/2; }
+  ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh); }
+function wrap(ctx,text,maxW){ const words=String(text).split(/\s+/); const lines=[]; let line="";
+  for(const w of words){ const t=line?line+" "+w:w; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t; }
+  if(line) lines.push(line); return lines; }
+function fitHeadline(ctx,text,maxW,startSize,minSize,maxLines){ let size=startSize;
+  while(size>minSize){ ctx.font=`800 ${size}px Montserrat, sans-serif`; const ls=wrap(ctx,text,maxW); if(ls.length<=maxLines) return {size,lines:ls}; size-=4; }
+  ctx.font=`800 ${size}px Montserrat, sans-serif`; return {size,lines:wrap(ctx,text,maxW)}; }
+
+// ---------- сам компоновщик (гибрид, с разными раскладками) ----------
+function drawCreative(canvas, fmt, c, assets, layout){
+  const S=SAFE[fmt]; canvas.width=S.W; canvas.height=S.H;
+  const ctx=canvas.getContext("2d");
+  const pal={ bg:c.palette?.bg||"#15151b", fg:c.palette?.fg||"#ffffff", accent:c.palette?.accent||"#d8ff3e" };
+  const L=S.left*S.W, R=S.W-S.right*S.W, T=S.top*S.H, B=S.H-S.bottom*S.H, cw=R-L;
+  const lay = layout || { align:"left", vpos:"bottom", bar:true, button:true, logo:"tl" };
+  const center = lay.align==="center";
+
+  // ===== фон =====
+  if(assets.bg){ coverDraw(ctx,assets.bg,0,0,S.W,S.H); }
+  else { const g=ctx.createLinearGradient(0,0,S.W,S.H); g.addColorStop(0,pal.bg); g.addColorStop(1,shade(pal.bg,-26)); ctx.fillStyle=g; ctx.fillRect(0,0,S.W,S.H); }
+
+  // ===== затемнение под текст (зависит от позиции блока) =====
+  let sc;
+  if(lay.vpos==="top"){ sc=ctx.createLinearGradient(0,0,0,S.H*0.55); sc.addColorStop(0,"rgba(0,0,0,0.86)"); sc.addColorStop(0.5,"rgba(0,0,0,0.4)"); sc.addColorStop(1,"rgba(0,0,0,0)"); }
+  else if(lay.vpos==="center"){ sc=ctx.createLinearGradient(0,S.H*0.18,0,S.H*0.9); sc.addColorStop(0,"rgba(0,0,0,0)"); sc.addColorStop(0.5,"rgba(0,0,0,0.6)"); sc.addColorStop(1,"rgba(0,0,0,0.1)"); }
+  else { sc=ctx.createLinearGradient(0,S.H*0.40,0,S.H); sc.addColorStop(0,"rgba(0,0,0,0)"); sc.addColorStop(0.55,"rgba(0,0,0,0.45)"); sc.addColorStop(1,"rgba(0,0,0,0.9)"); }
+  ctx.fillStyle=sc; ctx.fillRect(0,0,S.W,S.H);
+
+  // ===== фото товара (в области, противоположной тексту) =====
+  if(assets.prod){
+    const pT = lay.vpos==="top" ? T+S.H*0.34 : T+S.H*0.05;
+    const boxH=S.H*(fmt==="9:16"?0.26:0.30), boxW=cw*0.78;
+    const ir=assets.prod.width/assets.prod.height; let dw=boxW, dh=dw/ir; if(dh>boxH){dh=boxH;dw=dh*ir;}
+    ctx.save(); ctx.shadowColor="rgba(0,0,0,0.45)"; ctx.shadowBlur=S.W*0.04; ctx.shadowOffsetY=S.W*0.012;
+    ctx.drawImage(assets.prod, L+(cw-dw)/2, pT, dw, dh); ctx.restore();
+  }
+
+  // ===== геометрия текстового блока =====
+  const barOn=lay.bar && !center, barW=barOn?Math.round(S.W*0.013):0, gapBar=barOn?S.W*0.032:0;
+  const textX=center?(L+R)/2:L+barW+gapBar, textMaxW=center?cw*0.92:(R-textX);
+
+  // заголовок (авто-размер)
+  const hasExtra=!!currentExtra;
+  const maxLines=fmt==="9:16"?(hasExtra?3:4):(hasExtra?2:3);
+  const fit=fitHeadline(ctx,c.headline||"",textMaxW,S.W*(fmt==="9:16"?0.082:0.072)*(lay.hScale||1),S.W*0.046,maxLines);
+  const hLH=fit.size*1.05, headlineH=fit.lines.length*hLH;
+
+  // УТП-плашка
+  const badgeFont=Math.round(S.W*0.028); let badgeTxt=null, badgeH=0;
+  if(currentUsp){ ctx.font=`700 ${badgeFont}px Montserrat, sans-serif`; badgeTxt=currentUsp.toUpperCase();
+    const mb=textMaxW-S.W*0.05; while(ctx.measureText(badgeTxt).width>mb && badgeTxt.length>4) badgeTxt=badgeTxt.slice(0,-2);
+    badgeH=badgeFont+S.W*0.015*2; }
+
+  // доп.текст (буллеты)
+  const exFont=Math.round(S.W*0.030), exLH=exFont*1.4; let exLines=[];
+  if(hasExtra){ ctx.font=`600 ${exFont}px Montserrat, sans-serif`;
+    currentExtra.split(/[\n;,]+/).map(s=>s.trim()).filter(Boolean).slice(0,3).forEach(it=>{
+      let t=it; const me=textMaxW-S.W*0.06; while(ctx.measureText(t).width>me && t.length>3) t=t.slice(0,-2); exLines.push(t); }); }
+  const extraH=exLines.length*exLH;
+
+  // кнопка
+  const ctaFont=Math.round(S.W*0.037); let ctaTxt=null, btnW=0, btnH=0;
+  if(lay.button){ ctx.font=`800 ${ctaFont}px Montserrat, sans-serif`; ctaTxt=(c.cta||"Подробнее").toUpperCase();
+    btnW=ctx.measureText(ctaTxt).width+ctaFont*2; btnH=ctaFont+ctaFont*1.2; }
+
+  const g1=badgeH?S.H*0.018:0, g2=extraH?S.H*0.022:0, g3=btnH?S.H*0.028:0;
+  const blockH=badgeH+g1+headlineH+g2+extraH+g3+btnH;
+  let y = lay.vpos==="top" ? T+S.H*0.02 : lay.vpos==="center" ? (T+B)/2-blockH/2 : B-blockH;
+  if(y<T) y=T;
+
+  // ===== панель-подложка (для panel-раскладки) =====
+  if(lay.panel==="card"){ const pad=S.W*0.04; ctx.fillStyle="rgba(0,0,0,0.5)";
+    rrect(ctx, L-pad*0.4, y-pad, cw+pad*0.8, blockH+pad*2, S.W*0.03); ctx.fill(); }
+
+  // ===== отрисовка =====
+  // акцентная полоса
+  if(barOn){ ctx.fillStyle=pal.accent; rrect(ctx,L,y+(badgeH?badgeH+g1:0)+fit.size*0.1,barW,Math.max(barW,headlineH-fit.size*0.2),barW/2); ctx.fill(); }
+
+  let cy=y;
+  // плашка УТП дословно
+  if(badgeTxt){ ctx.font=`700 ${badgeFont}px Montserrat, sans-serif`;
+    const bpadX=S.W*0.026, bw=ctx.measureText(badgeTxt).width+bpadX*2, bx=center?textX-bw/2:textX;
+    ctx.fillStyle=pal.accent; rrect(ctx,bx,cy,bw,badgeH,badgeH/2); ctx.fill();
+    ctx.fillStyle=contrast(pal.accent); ctx.textBaseline="middle"; ctx.textAlign=center?"center":"left";
+    ctx.fillText(badgeTxt, center?textX:textX+bpadX, cy+badgeH/2+1); cy+=badgeH+g1; }
+  // заголовок
+  ctx.font=`800 ${fit.size}px Montserrat, sans-serif`; ctx.textBaseline="top"; ctx.textAlign=center?"center":"left";
+  ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=fit.size*0.16; ctx.shadowOffsetY=2;
+  fit.lines.forEach((ln,k)=>{ ctx.fillStyle=(lay.highlight && k===fit.lines.length-1)?pal.accent:pal.fg; ctx.fillText(ln,textX,cy+k*hLH); });
+  ctx.shadowColor="transparent"; ctx.shadowBlur=0; ctx.shadowOffsetY=0; cy+=headlineH;
+  // доп.текст
+  if(exLines.length){ cy+=g2; ctx.font=`600 ${exFont}px Montserrat, sans-serif`; ctx.textBaseline="top";
+    exLines.forEach((ln,k)=>{ const yy=cy+k*exLH;
+      if(center){ ctx.textAlign="center"; ctx.fillStyle=pal.fg; ctx.fillText(ln,textX,yy); }
+      else { ctx.fillStyle=pal.accent; ctx.beginPath(); ctx.arc(textX+exFont*0.28,yy+exFont*0.62,exFont*0.18,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle=pal.fg; ctx.textAlign="left"; ctx.fillText(ln,textX+exFont*0.75,yy); } });
+    cy+=extraH; }
+  // кнопка
+  if(ctaTxt){ cy+=g3; const bx=center?textX-btnW/2:textX; const rad=lay.btnStyle==="rect"?S.W*0.018:btnH/2;
+    if(lay.btnStyle==="outline"){
+      ctx.lineWidth=Math.max(3,S.W*0.0045); ctx.strokeStyle=pal.accent; rrect(ctx,bx,cy,btnW,btnH,rad); ctx.stroke();
+      ctx.fillStyle=pal.accent;
+    } else {
+      ctx.save(); ctx.shadowColor="rgba(0,0,0,0.35)"; ctx.shadowBlur=S.W*0.025; ctx.shadowOffsetY=S.W*0.006;
+      ctx.fillStyle=pal.accent; rrect(ctx,bx,cy,btnW,btnH,rad); ctx.fill(); ctx.restore();
+      ctx.fillStyle=contrast(pal.accent);
+    }
+    ctx.textBaseline="middle"; ctx.textAlign="left"; ctx.font=`800 ${ctaFont}px Montserrat, sans-serif`;
+    ctx.fillText(ctaTxt,bx+ctaFont,cy+btnH/2+1); }
+
+  // ===== логотип (в выбранном углу, как есть) =====
+  if(assets.logo){ const lh=S.H*0.040, lr=assets.logo.width/assets.logo.height, lw=lh*lr;
+    let lx=L, ly=T+S.H*0.015;
+    if(lay.logo==="tc"){ lx=(L+R)/2-lw/2; } else if(lay.logo==="bl"){ ly=B-lh; }
+    ctx.save(); ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=S.W*0.02; ctx.shadowOffsetY=S.W*0.004;
+    ctx.drawImage(assets.logo,lx,ly,lw,lh); ctx.restore(); }
+}
+
+// ---------- скачивание ----------
+function download(canvas, name){ canvas.toBlob(b=>{ const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),3000); }, "image/png"); }
+
+// ---------- карточка результата ----------
+function renderCard(c, assets, layout){
+  const card=document.createElement("article"); card.className="card";
+  const cv916=document.createElement("canvas"), cv11=document.createElement("canvas");
+  cv916.className="cv916"; cv11.className="cv11";
+  drawCreative(cv916,"9:16",c,assets,layout); drawCreative(cv11,"1:1",c,assets,layout);
+
+  card.innerHTML = `
+    <div class="previews">
+      <div class="pv"><span class="pv-tag">9:16</span>
+        <div class="guide"><div class="g g-top"></div><div class="g g-bot"></div><div class="g g-right"></div></div>
+      </div>
+      <div class="pv"><span class="pv-tag">1:1</span></div>
+    </div>
+    <div class="body">
+      <span class="angle"></span>
+      <p class="ptext"></p>
+      <div class="btns">
+        <button class="btn solid" data-d="916">Скачать 9:16</button>
+        <button class="btn solid" data-d="11">Скачать 1:1</button>
+        <button class="btn" data-copy>Копировать текст</button>
+      </div>
+    </div>`;
+  card.querySelectorAll(".pv")[0].prepend(cv916);
+  card.querySelectorAll(".pv")[1].prepend(cv11);
+  card.querySelector(".angle").textContent = c.angle || "Креатив";
+  card.querySelector(".ptext").textContent = c.primary_text || "";
+  card.querySelector('[data-d="916"]').onclick=()=>download(cv916,"creative_9x16.png");
+  card.querySelector('[data-d="11"]').onclick=()=>download(cv11,"creative_1x1.png");
+  card.querySelector('[data-copy]').onclick=(e)=>{ const t=(c.headline||"")+"\n\n"+(c.primary_text||"")+"\n\n👉 "+(c.cta||"");
+    const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select();
+    try{document.execCommand("copy");}catch(_){ } ta.remove(); e.target.textContent="✓ Скопировано"; setTimeout(()=>e.target.textContent="Копировать текст",1500); };
+  $("grid").appendChild(card);
+}
+</script>
+</body>
+</html>
