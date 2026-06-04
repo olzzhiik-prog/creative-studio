@@ -251,6 +251,9 @@ function coverDraw(ctx,img,dx,dy,dw,dh){ const ir=img.width/img.height, dr=dw/dh
 function wrap(ctx,text,maxW){ const words=String(text).split(/\s+/); const lines=[]; let line="";
   for(const w of words){ const t=line?line+" "+w:w; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t; }
   if(line) lines.push(line); return lines; }
+function fitHeadline(ctx,text,maxW,startSize,minSize,maxLines){ let size=startSize;
+  while(size>minSize){ ctx.font=`800 ${size}px Montserrat, sans-serif`; const ls=wrap(ctx,text,maxW); if(ls.length<=maxLines) return {size,lines:ls}; size-=4; }
+  ctx.font=`800 ${size}px Montserrat, sans-serif`; return {size,lines:wrap(ctx,text,maxW)}; }
 
 // ---------- сам компоновщик (гибрид) ----------
 function drawCreative(canvas, fmt, c, assets){
@@ -264,36 +267,43 @@ function drawCreative(canvas, fmt, c, assets){
   if(assets.bg){ coverDraw(ctx,assets.bg,0,0,S.W,S.H); }
   else { const g=ctx.createLinearGradient(0,0,S.W,S.H); g.addColorStop(0,pal.bg); g.addColorStop(1,shade(pal.bg,-26)); ctx.fillStyle=g; ctx.fillRect(0,0,S.W,S.H); }
 
-  // затемнение снизу для читаемости текста
-  const sc=ctx.createLinearGradient(0,S.H*0.45,0,S.H); sc.addColorStop(0,"rgba(0,0,0,0)"); sc.addColorStop(1,"rgba(0,0,0,0.62)");
+  // сильное затемнение снизу — заголовок читается на любом фото
+  const sc=ctx.createLinearGradient(0,S.H*0.40,0,S.H);
+  sc.addColorStop(0,"rgba(0,0,0,0)"); sc.addColorStop(0.55,"rgba(0,0,0,0.45)"); sc.addColorStop(1,"rgba(0,0,0,0.88)");
   ctx.fillStyle=sc; ctx.fillRect(0,0,S.W,S.H);
 
-  // фото товара (по центру верхней части безопасной зоны)
-  if(assets.prod){ const boxT=T+S.H*0.04, boxH=S.H*(fmt==="9:16"?0.30:0.34), boxW=cw*0.82;
+  // фото товара (центр верхней части, с мягкой тенью)
+  if(assets.prod){ const boxT=T+S.H*0.05, boxH=S.H*(fmt==="9:16"?0.28:0.32), boxW=cw*0.80;
     const ir=assets.prod.width/assets.prod.height; let dw=boxW, dh=dw/ir; if(dh>boxH){dh=boxH;dw=dh*ir;}
-    ctx.drawImage(assets.prod, L+(cw-dw)/2, boxT, dw, dh); }
+    ctx.save(); ctx.shadowColor="rgba(0,0,0,0.45)"; ctx.shadowBlur=S.W*0.04; ctx.shadowOffsetY=S.W*0.012;
+    ctx.drawImage(assets.prod, L+(cw-dw)/2, boxT, dw, dh); ctx.restore(); }
 
-  // логотип (верх-лево безопасной зоны, на лёгкой плашке)
-  if(assets.logo){ const lh=S.H*0.05, lr=assets.logo.width/assets.logo.height, lw=lh*lr, lx=L, ly=T+S.H*0.01;
-    ctx.fillStyle="rgba(255,255,255,0.92)"; rrect(ctx,lx-10,ly-8,lw+20,lh+16,12); ctx.fill();
+  // логотип (верх-лево, на плашке)
+  if(assets.logo){ const lh=S.H*0.048, lr=assets.logo.width/assets.logo.height, lw=lh*lr, lx=L, ly=T+S.H*0.012;
+    ctx.fillStyle="rgba(255,255,255,0.94)"; rrect(ctx,lx-12,ly-9,lw+24,lh+18,14); ctx.fill();
     ctx.drawImage(assets.logo,lx,ly,lw,lh); }
 
-  // CTA-кнопка (низ безопасной зоны)
-  const ctaFont=Math.round(S.W*0.034); ctx.font=`700 ${ctaFont}px Montserrat, sans-serif`;
+  // CTA-кнопка (низ безопасной зоны), с тенью
+  const ctaFont=Math.round(S.W*0.037); ctx.font=`800 ${ctaFont}px Montserrat, sans-serif`;
   const cta=(c.cta||"Подробнее").toUpperCase(); const ctaW=ctx.measureText(cta).width;
-  const padX=ctaFont*0.9, padY=ctaFont*0.55, btnH=ctaFont+padY*2, btnW=ctaW+padX*2;
+  const padX=ctaFont*1.0, padY=ctaFont*0.6, btnH=ctaFont+padY*2, btnW=ctaW+padX*2;
   const btnY=B-btnH;
-  ctx.fillStyle=pal.accent; rrect(ctx,L,btnY,btnW,btnH,btnH/2); ctx.fill();
+  ctx.save(); ctx.shadowColor="rgba(0,0,0,0.35)"; ctx.shadowBlur=S.W*0.025; ctx.shadowOffsetY=S.W*0.006;
+  ctx.fillStyle=pal.accent; rrect(ctx,L,btnY,btnW,btnH,btnH/2); ctx.fill(); ctx.restore();
   ctx.fillStyle=contrast(pal.accent); ctx.textBaseline="middle"; ctx.textAlign="left";
   ctx.fillText(cta, L+padX, btnY+btnH/2+1);
 
-  // заголовок (над кнопкой, перенос по словам)
-  const hSize=Math.round(S.W*(fmt==="9:16"?0.072:0.066)); ctx.font=`800 ${hSize}px Montserrat, sans-serif`;
-  const lines=wrap(ctx, c.headline||"", cw); const lh2=hSize*1.08;
-  let hy=btnY - S.H*0.03 - lines.length*lh2;
-  ctx.fillStyle=pal.fg; ctx.textAlign="left"; ctx.textBaseline="top";
-  ctx.shadowColor="rgba(0,0,0,0.35)"; ctx.shadowBlur=hSize*0.18; ctx.shadowOffsetY=2;
-  lines.forEach((ln,k)=>ctx.fillText(ln, L, hy+k*lh2));
+  // Заголовок: авто-подгонка размера + акцентная вертикальная полоса слева
+  const barW=Math.round(S.W*0.013), gap=S.W*0.032;
+  const textX=L+barW+gap, textMaxW=R-textX;
+  const start=S.W*(fmt==="9:16"?0.082:0.072), min=S.W*0.046, maxLines=fmt==="9:16"?4:3;
+  const fit=fitHeadline(ctx,c.headline||"",textMaxW,start,min,maxLines);
+  const lh2=fit.size*1.05, blockH=fit.lines.length*lh2;
+  const hyTop=btnY - S.H*0.038 - blockH;
+  ctx.fillStyle=pal.accent; rrect(ctx,L,hyTop+fit.size*0.12,barW,Math.max(barW,blockH-fit.size*0.22),barW/2); ctx.fill();
+  ctx.font=`800 ${fit.size}px Montserrat, sans-serif`; ctx.fillStyle=pal.fg; ctx.textAlign="left"; ctx.textBaseline="top";
+  ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=fit.size*0.16; ctx.shadowOffsetY=2;
+  fit.lines.forEach((ln,k)=>ctx.fillText(ln, textX, hyTop+k*lh2));
   ctx.shadowColor="transparent"; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
 }
 
