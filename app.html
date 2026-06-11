@@ -280,12 +280,12 @@ async function uspFlow(btn, payload){
 $("uspBtn").addEventListener("click", ()=>{
   const product=$("product").value.trim();
   if(!product){ status("Сначала опишите продукт — по нему сгенерим УТП.", true); return; }
-  uspFlow($("uspBtn"), { mode:"usp", product, code:accessCode });
+  uspFlow($("uspBtn"), { mode:"usp", product, audience:$("audience").value.trim(), code:accessCode });
 });
 $("improveBtn").addEventListener("click", ()=>{
   const usp=$("usp").value.trim();
   if(!usp){ status("Сначала впишите своё УТП, чтобы его улучшить.", true); return; }
-  uspFlow($("improveBtn"), { mode:"usp_improve", usp, code:accessCode });
+  uspFlow($("improveBtn"), { mode:"usp_improve", usp, product:$("product").value.trim(), audience:$("audience").value.trim(), code:accessCode });
 });
 
 // ---------- генерация креативов ----------
